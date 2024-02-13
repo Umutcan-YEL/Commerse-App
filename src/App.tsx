@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "./services/redux/Store";
 import { getproduct } from "./services/redux/slices/ProductSlice";
-import { ProductStateModel } from "./services/models/State";
+import { ProductStateModel } from "./models/State";
 
 function App() {
   const dispatch = useDispatch<AppDispatch>();
@@ -11,7 +11,7 @@ function App() {
     dispatch(getproduct());
   }, []);
 
-  const { isLoading, productData, isError } = useSelector(
+  const { isLoading, isError } = useSelector(
     (state: ProductStateModel) => state.product
   );
 
