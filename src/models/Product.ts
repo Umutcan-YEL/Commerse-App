@@ -4,7 +4,9 @@ export type ProductModel = {
   price: number;
   description: string;
   category: string;
-  image: string;
+  brand: string;
+  thumbnail: string;
+  images: string[];
   rating: {
     rate: number;
     count: number;

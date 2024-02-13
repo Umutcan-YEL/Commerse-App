@@ -1,9 +1,14 @@
-import { ProductModel } from "./Product"
+import { ProductModel } from "./Product";
 
 export type ProductStateModel = {
-  product:{
-    isLoading: boolean,
-    isError: boolean,
-    productData: Array<ProductModel>,
-  }
-}
+  product: {
+    isLoading: boolean;
+    isError: boolean;
+    productData: {
+      products: Array<ProductModel>;
+      total: number;
+      skip: number;
+      limit: number;
+    };
+  };
+};

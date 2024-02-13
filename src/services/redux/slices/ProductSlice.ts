@@ -3,7 +3,7 @@ import { GetProducts } from "../../api/ProductsApi";
 
 const initialState = {
   isLoading: false,
-  productData: [],
+  productData: null,
   isError: false,
 };
 
