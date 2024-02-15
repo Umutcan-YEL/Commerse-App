@@ -1,5 +1,3 @@
-import { useSelector } from "react-redux";
-import { ProductStateModel } from "../models/State";
 import {
   Card,
   Col,
@@ -8,8 +6,10 @@ import {
   MenuProps,
   Pagination,
   Row,
-  Slider,
   Select,
+  Input,
+  Button,
+  InputNumber,
 } from "antd";
 import { Content, Header } from "antd/es/layout/layout";
 import Sider from "antd/es/layout/Sider";
@@ -20,14 +20,15 @@ import {
   ShopFilled,
   TeamOutlined,
 } from "@ant-design/icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { ProductModel } from "../models/Product";
 
 type MenuItem = Required<MenuProps>["items"][number];
 
 function getItem(
   label: React.ReactNode,
   key: React.Key,
-  icon?: React.ReactNode,
+  _icon?: React.ReactNode,
   children?: MenuItem[]
 ): MenuItem {
   return {
@@ -37,111 +38,179 @@ function getItem(
   } as MenuItem;
 }
 
-function HomeLayout() {
+function HomeLayout(props: { productData: ProductModel[] }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, _setPageSize] = useState(16);
-  const [filter, setFilter] = useState("");
-  const [sort, setSort] = useState("");
-  const [price, setPrice] = useState<number[]>([0, 1799]);
-  const productData = useSelector(
-    (state: ProductStateModel) => state.product.productData.products
-  );
+  const [selectedKey, setSelectedKey] = useState<string[]>();
 
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(3000);
+  const [totalCards, setTotalCards] = useState(props.productData.length);
+  const [product, setProduct] = useState<ProductModel[]>();
+  const [filteredData, setFilteredData] = useState<ProductModel[]>();
+
+  const prices = props.productData.map((item) => item.price);
+
+  useEffect(() => {
+    setProduct(props.productData);
+    setMaxPrice(Math.max(...prices));
+    setMinPrice(Math.min(...prices));
+  }, []);
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
-  let productdata = productData;
+  const onClick = (e: { key: string }) => {
+    if (e.key !== "0") {
+      const filterData = product.filter((item) => item.category === e.key);
+      const prices = filterData.map((item) => item.price);
 
-  switch (filter) {
-    case "1":
-      productdata = productdata.filter(
-        (item) => item.category === "fragrances"
-      );
-      break;
-    case "2":
-      productdata = productdata.filter((item) => item.category === "skincare");
-      break;
-    case "3":
-      productdata = productdata.filter((item) => item.category === "groceries");
-      break;
-    case "4":
-      productdata = productdata.filter(
-        (item) => item.category === "home-decoration"
-      );
-      break;
-    case "6":
-      productdata = productdata.filter(
-        (item) => item.category === "smartphones"
-      );
-      break;
-    case "7":
-      productdata = productdata.filter((item) => item.category === "laptops");
-      break;
-    case "0":
-      break;
-    default:
-      break;
-  }
+      setMaxPrice(Math.max(...prices));
+      setMinPrice(Math.min(...prices));
+      setFilteredData(filterData);
+      setTotalCards(filterData.length);
+      setCurrentPage(1);
+    }
+  };
 
-  switch (sort) {
-    case "1":
-      productdata = [...productdata].sort((a, b) => b.price - a.price);
-      break;
-    case "2":
-      productdata = [...productdata].sort((a, b) => a.price - b.price);
+  const Filter = () => {
+    if (minPrice != null || maxPrice != null) {
+      if (
+        filteredData == null ||
+        filteredData == undefined ||
+        filteredData.length < 0
+      ) {
+        const priceFilterData = props.productData.filter(
+          (product) => product.price >= minPrice && product.price <= maxPrice
+        );
+        setProduct(priceFilterData);
+        setMinPrice(0);
+        setMaxPrice(3000);
+      } else {
+        const priceFilterData = props.productData.filter(
+          (product) => product.price >= minPrice && product.price <= maxPrice
+        );
+        if (filteredData.length > 0) {
+          const filterprice = priceFilterData.filter((item) =>
+            filteredData[0].category.includes(item.category)
+          );
+          setFilteredData(filterprice);
+          setMaxPrice(0);
+          setMinPrice(3000);
+        }
+      }
+    }
+  };
 
-      break;
-    case "3":
-      productdata = [...productdata].sort((a, b) =>
-        a.title.localeCompare(b.title)
-      );
+  const HandleSort = (e) => {
+    switch (e) {
+      case "1":
+        if (
+          filteredData == null ||
+          filteredData == undefined ||
+          filteredData.length < 0
+        ) {
+          const sortedData = [...props.productData].sort(
+            (a, b) => b.price - a.price
+          );
+          setProduct(sortedData);
+        } else {
+          const sortedData = [...filteredData].sort(
+            (a, b) => b.price - a.price
+          );
+          setFilteredData(sortedData);
+        }
 
-      break;
-    case "4":
-      productdata = [...productdata].sort((a, b) =>
-        b.title.localeCompare(a.title)
-      );
+        break;
+      case "2":
+        if (
+          filteredData == null ||
+          filteredData == undefined ||
+          filteredData.length < 0
+        ) {
+          const sortedData = [...props.productData].sort(
+            (a, b) => a.price - b.price
+          );
+          setProduct(sortedData);
+        } else {
+          const sortedData = [...filteredData].sort(
+            (a, b) => a.price - b.price
+          );
+          setFilteredData(sortedData);
+        }
 
-      break;
-    case "5":
-      productdata = [...productdata].sort(
-        (a, b) => Number(a.rating) - Number(b.rating)
-      );
+        break;
+      case "3":
+        if (
+          filteredData == null ||
+          filteredData == undefined ||
+          filteredData.length < 0
+        ) {
+          const sortedData = [...props.productData].sort((a, b) =>
+            a.title.localeCompare(b.title)
+          );
+          setProduct(sortedData);
+        } else {
+          const sortedData = [...filteredData].sort((a, b) =>
+            a.title.localeCompare(b.title)
+          );
+          setFilteredData(sortedData);
+        }
 
-      break;
-    case "0":
-      break;
-    default:
-      break;
-  }
+        break;
+      case "4":
+        if (
+          filteredData == null ||
+          filteredData == undefined ||
+          filteredData.length < 0
+        ) {
+          const sortedData = [...props.productData].sort((a, b) =>
+            b.title.localeCompare(a.title)
+          );
+          setProduct(sortedData);
+        } else {
+          const sortedData = [...filteredData].sort((a, b) =>
+            b.title.localeCompare(a.title)
+          );
+          setFilteredData(sortedData);
+        }
 
-  productdata = productdata.filter(
-    (item) => item.price >= price[0] && item.price <= price[1]
-  );
+        break;
+      case "5":
+        if (
+          filteredData == null ||
+          filteredData == undefined ||
+          filteredData.length < 0
+        ) {
+          const sortedData = [...props.productData].sort(
+            (a, b) => Number(a.rating) - Number(b.rating)
+          );
+          setProduct(sortedData);
+        } else {
+          const sortedData = [...filteredData].sort(
+            (a, b) => Number(a.rating) - Number(b.rating)
+          );
+          setFilteredData(sortedData);
+        }
 
-  const data = productdata.map((product) => {
-    return {
-      id: product.id,
-      title: product.title,
-      description: product.description,
-      price: product.price,
-      thumbnail: product.thumbnail,
-      category: product.category,
-      brand: product.brand,
-    };
-  });
-
-  const prices = data.map((item) => item.price);
-
-  const totalCards = data.length;
+        break;
+      default:
+        break;
+    }
+  };
 
   const renderCards = () => {
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
-    const currentCards = data.slice(startIndex, endIndex);
 
-    return currentCards.map((card) => (
+    let currentCards;
+    if (filteredData == undefined || filteredData == null) {
+      currentCards = product?.slice(startIndex, endIndex);
+    } else {
+      currentCards = filteredData.slice(startIndex, endIndex);
+    }
+
+    return currentCards?.map((card) => (
       <Col key={card.id}>
         <br />
         <Card
@@ -166,27 +235,15 @@ function HomeLayout() {
       </Col>
     ));
   };
-  const onClick = (e: { key: string }) => {
-    console.log(e.key);
-    setFilter(e.key);
-  };
-
-  const onSort = (e: string) => {
-    setSort(e);
-  };
-
-
-  const minprice = Math.min(...prices);
-  const maxprice = Math.max(...prices);
 
   const items1: MenuItem[] = [
-    getItem("fragrances", "1", <PieChartOutlined />),
-    getItem("skincare", "2", <DesktopOutlined />),
-    getItem("groceries", "3", <FileOutlined />),
-    getItem("home decoration", "4", <FileOutlined />),
-    getItem("Electronics", "5", <TeamOutlined />, [
-      getItem("smartphones", "6"),
-      getItem("laptops", "7"),
+    getItem("fragrances", "fragrances", <PieChartOutlined />),
+    getItem("skincare", "skincare", <DesktopOutlined />),
+    getItem("groceries", "groceries", <FileOutlined />),
+    getItem("home decoration", "home-decoration", <FileOutlined />),
+    getItem("Electronics", "7", <TeamOutlined />, [
+      getItem("smartphones", "smartphones"),
+      getItem("laptops", "laptops"),
     ]),
   ];
 
@@ -194,15 +251,20 @@ function HomeLayout() {
     <Layout style={{ minHeight: "100vh" }}>
       <Header style={{ display: "flex", alignItems: "center" }}>
         <ShopFilled
-          onClick={() => setFilter("0")}
+          onClick={() => {
+            setFilteredData(null);
+            setSelectedKey(["0"]);
+            setMaxPrice(Math.max(...prices));
+            setMinPrice(Math.min(...prices));
+            setTotalCards(props.productData.length);
+          }}
           style={{ fontSize: "20px", color: "white", marginLeft: "2rem" }}
         />
         <Menu
           theme="dark"
           mode="horizontal"
+          selectedKeys={selectedKey}
           onClick={onClick}
-          selectedKeys={[filter]}
-          defaultSelectedKeys={[filter]}
           items={items1}
           style={{ flex: 1, minWidth: 0, marginLeft: "9rem" }}
         />
@@ -219,22 +281,39 @@ function HomeLayout() {
           }}
         >
           <Row style={{ marginLeft: "20%", marginTop: "10vh" }}>
-            <h3 style={{ textAlign: "center" }}>Price Range :</h3>
-            <Slider
-              min={0}
-              max={2000}
-              style={{ width: "8rem", marginRight: "1rem", color: "red" }}
-              range={true}
-              onChangeComplete={(value) => setPrice(value)}
-              defaultValue={[minprice, maxprice]}
+            <InputNumber
+              placeholder={"min :"}
+              onChange={(e) => setMinPrice(Number(e))}
+              value={minPrice}
+              style={{
+                width: "8rem",
+                marginRight: "1rem",
+                color: "red",
+                marginBottom: "1rem",
+              }}
             />
+            <InputNumber
+              value={maxPrice}
+              placeholder={"max :"}
+              onChange={(e) => setMaxPrice(Number(e))}
+              style={{ width: "8rem", marginRight: "1rem", color: "red" }}
+            />
+
+            <Button
+              type="primary"
+              onClick={Filter}
+              style={{ marginTop: "1rem" }}
+            >
+              Filter{" "}
+            </Button>
           </Row>
         </Sider>
         <Content>
           <div style={{ overflow: "initial", minHeight: "80vh" }}>
             <Select
               style={{ width: 200, marginTop: "1rem", marginLeft: "1rem" }}
-              onChange={onSort}
+              onChange={HandleSort}
+              value={"Sort"}
               placeholder="Select to sort"
               options={[
                 {

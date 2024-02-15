@@ -32,7 +32,7 @@ function App() {
   } else {
     return (
       <Suspense>
-        <HomeLayout />
+        <HomeLayout productData={productData.products} />
       </Suspense>
     );
   }
