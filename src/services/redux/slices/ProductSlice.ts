@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { GetProducts } from "../../api/ProductsApi";
 
 const initialState = {
-  isLoading: false,
+  isLoading: true,
   productData: null,
   isError: false,
 };

@@ -4,7 +4,8 @@ import { AppDispatch } from "./services/redux/Store";
 import { getproduct } from "./services/redux/slices/ProductSlice";
 import { ProductStateModel } from "./models/State";
 
-const MainLayout = lazy(() => import("./components/MainLayout"));
+// const MainLayout = lazy(() => import("./components/MainLayout"));
+const HomeLayout = lazy(() => import("./components/HomeLayout"));
 function App() {
   const dispatch = useDispatch<AppDispatch>();
 
@@ -12,40 +13,29 @@ function App() {
     dispatch(getproduct());
   }, []);
 
-  const { isLoading, isError } = useSelector(
+  const { isLoading, isError, productData } = useSelector(
     (state: ProductStateModel) => state.product
   );
 
-  if (isLoading) {
+  if (isLoading || productData == null) {
     return (
       <div className="center">
         <span className="loader"></span>
       </div>
     );
-  }
-
-  if (isError) {
+  } else if (isError) {
     return (
       <div className="center">
         <span> Error While Fetching Data</span>
       </div>
     );
+  } else {
+    return (
+      <Suspense>
+        <HomeLayout />
+      </Suspense>
+    );
   }
-
-  return (
-    <Suspense
-      fallback={
-        <div className="center">
-          <span className="loader"></span>
-        </div>
-      }
-    >
-      {" "}
-      <div className="main-container">
-        <MainLayout />
-      </div>
-    </Suspense>
-  );
 }
 
 export default App;

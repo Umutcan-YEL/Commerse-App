@@ -1,17 +1,27 @@
-import { Card, Checkbox, Col, Layout, Menu, Pagination, Row } from "antd";
-import type { MenuProps } from "antd";
-const { Header, Content, Sider } = Layout;
+import { useSelector } from "react-redux";
+import { ProductStateModel } from "../models/State";
+import {
+  Card,
+  Col,
+  Layout,
+  Menu,
+  MenuProps,
+  Pagination,
+  Row,
+  Slider,
+  Select,
+} from "antd";
+import { Content, Header } from "antd/es/layout/layout";
+import Sider from "antd/es/layout/Sider";
 import {
   DesktopOutlined,
   FileOutlined,
   PieChartOutlined,
+  ShopFilled,
   TeamOutlined,
 } from "@ant-design/icons";
-import { useSelector } from "react-redux";
-import { ProductStateModel } from "../models/State";
-import {  useState } from "react";
-import { ShopFilled } from "@ant-design/icons";
-import { Slider } from "antd";
+import { useState } from "react";
+
 type MenuItem = Required<MenuProps>["items"][number];
 
 function getItem(
@@ -22,37 +32,26 @@ function getItem(
 ): MenuItem {
   return {
     key,
-    icon,
     children,
     label,
   } as MenuItem;
 }
 
-function MainLayout() {
+function HomeLayout() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, _setPageSize] = useState(16);
   const [filter, setFilter] = useState("");
+  const [sort, setSort] = useState("");
   const [price, setPrice] = useState<number[]>([0, 1799]);
-
+  const productData = useSelector(
+    (state: ProductStateModel) => state.product.productData.products
+  );
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
-  const { isLoading, productData } = useSelector(
-    (state: ProductStateModel) => state.product
-  );
-
-  if (isLoading) {
-    return (
-      <div className="center">
-        <span className="loader"></span>
-      </div>
-    );
-  }
-  const brands = productData.products.map((item) => item.brand);
-  const [selecetedBrand, _setSelectedBrand] = useState<string[]>(brands);
-  let productdata = productData?.products;
+  let productdata = productData;
 
   switch (filter) {
     case "1":
@@ -85,10 +84,41 @@ function MainLayout() {
       break;
   }
 
+  switch (sort) {
+    case "1":
+      productdata = [...productdata].sort((a, b) => b.price - a.price);
+      break;
+    case "2":
+      productdata = [...productdata].sort((a, b) => a.price - b.price);
+
+      break;
+    case "3":
+      productdata = [...productdata].sort((a, b) =>
+        a.title.localeCompare(b.title)
+      );
+
+      break;
+    case "4":
+      productdata = [...productdata].sort((a, b) =>
+        b.title.localeCompare(a.title)
+      );
+
+      break;
+    case "5":
+      productdata = [...productdata].sort(
+        (a, b) => Number(a.rating) - Number(b.rating)
+      );
+
+      break;
+    case "0":
+      break;
+    default:
+      break;
+  }
+
   productdata = productdata.filter(
     (item) => item.price >= price[0] && item.price <= price[1]
   );
-
 
   const data = productdata.map((product) => {
     return {
@@ -101,6 +131,8 @@ function MainLayout() {
       brand: product.brand,
     };
   });
+
+  const prices = data.map((item) => item.price);
 
   const totalCards = data.length;
 
@@ -139,9 +171,10 @@ function MainLayout() {
     setFilter(e.key);
   };
 
-  const prices = data.map((item) => item.price);
+  const onSort = (e: string) => {
+    setSort(e);
+  };
 
-  const uniqueBrands = [...new Set(brands)];
 
   const minprice = Math.min(...prices);
   const maxprice = Math.max(...prices);
@@ -186,6 +219,7 @@ function MainLayout() {
           }}
         >
           <Row style={{ marginLeft: "20%", marginTop: "10vh" }}>
+            <h3 style={{ textAlign: "center" }}>Price Range :</h3>
             <Slider
               min={0}
               max={2000}
@@ -194,24 +228,37 @@ function MainLayout() {
               onChangeComplete={(value) => setPrice(value)}
               defaultValue={[minprice, maxprice]}
             />
-            {uniqueBrands.map((brand, index) => {
-              return (
-                <div key={index}>
-                  <br />
-                  <Checkbox
-                    onChange={() => selecetedBrand.push(brand)}
-                    style={{ color: "white" }}
-                  >
-                    {" "}
-                    {brand}{" "}
-                  </Checkbox>
-                </div>
-              );
-            })}
           </Row>
         </Sider>
         <Content>
           <div style={{ overflow: "initial", minHeight: "80vh" }}>
+            <Select
+              style={{ width: 200, marginTop: "1rem", marginLeft: "1rem" }}
+              onChange={onSort}
+              placeholder="Select to sort"
+              options={[
+                {
+                  value: "1",
+                  label: "Price : high to low",
+                },
+                {
+                  value: "2",
+                  label: "Price : low to high",
+                },
+                {
+                  value: "3",
+                  label: "A - Z",
+                },
+                {
+                  value: "4",
+                  label: "Z - A",
+                },
+                {
+                  value: "5",
+                  label: "Rating",
+                },
+              ]}
+            />
             <Row> {renderCards()}</Row>
           </div>{" "}
           <Pagination
@@ -228,4 +275,4 @@ function MainLayout() {
   );
 }
 
-export default MainLayout;
+export default HomeLayout;
