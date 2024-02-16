@@ -199,6 +199,26 @@ function HomeLayout(props: { productData: ProductModel[] }) {
     }
   };
 
+  const HandleSearch = (e) => {
+    if (e.key === "Enter") {
+      console.log(e.target.value);
+      const searchData = props.productData.filter((item) =>
+        item.title.toLowerCase().includes(e.target.value)
+      );
+      if (searchData.length > 0) {
+        if (
+          filteredData == null ||
+          filteredData == undefined ||
+          filteredData.length < 0
+        ) {
+          setProduct(searchData);
+        } else {
+          setFilteredData(searchData);
+        }
+      }
+    }
+  };
+
   const renderCards = () => {
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
@@ -259,6 +279,11 @@ function HomeLayout(props: { productData: ProductModel[] }) {
             setTotalCards(props.productData.length);
           }}
           style={{ fontSize: "20px", color: "white", marginLeft: "2rem" }}
+        />
+        <Input
+          placeholder="search"
+          onKeyDown={HandleSearch}
+          style={{ width: "10rem", marginLeft: "9rem" }}
         />
         <Menu
           theme="dark"
