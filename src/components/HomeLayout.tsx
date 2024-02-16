@@ -10,6 +10,7 @@ import {
   Input,
   Button,
   InputNumber,
+  AutoComplete,
 } from "antd";
 import { Content, Header } from "antd/es/layout/layout";
 import Sider from "antd/es/layout/Sider";
@@ -56,6 +57,7 @@ function HomeLayout(props: { productData: ProductModel[] }) {
     setMaxPrice(Math.max(...prices));
     setMinPrice(Math.min(...prices));
   }, []);
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
@@ -201,7 +203,6 @@ function HomeLayout(props: { productData: ProductModel[] }) {
 
   const HandleSearch = (e) => {
     if (e.key === "Enter") {
-      console.log(e.target.value);
       const searchData = props.productData.filter((item) =>
         item.title.toLowerCase().includes(e.target.value)
       );
@@ -215,6 +216,25 @@ function HomeLayout(props: { productData: ProductModel[] }) {
         } else {
           setFilteredData(searchData);
         }
+      }
+    }
+  };
+
+  const handleSelect = (e) => {
+    console.log(e);
+
+    const searchData = props.productData.filter((item) =>
+      item.title.includes(e)
+    );
+    if (searchData.length > 0) {
+      if (
+        filteredData == null ||
+        filteredData == undefined ||
+        filteredData.length < 0
+      ) {
+        setProduct(searchData);
+      } else {
+        setFilteredData(searchData);
       }
     }
   };
@@ -280,10 +300,22 @@ function HomeLayout(props: { productData: ProductModel[] }) {
           }}
           style={{ fontSize: "20px", color: "white", marginLeft: "2rem" }}
         />
-        <Input
-          placeholder="search"
-          onKeyDown={HandleSearch}
+        <AutoComplete
           style={{ width: "10rem", marginLeft: "9rem" }}
+          options={props.productData.map((product) => {
+            return { value: product.title };
+          })}
+          onSelect={handleSelect}
+          onKeyDown={HandleSearch}
+          placeholder="Search"
+          filterOption={true}
+          allowClear={true}
+          onClear={() => {
+            setFilteredData(null);
+            setProduct(props.productData), setSelectedKey(["0"]);
+            setMaxPrice(Math.max(...prices));
+            setMinPrice(Math.min(...prices));
+          }}
         />
         <Menu
           theme="dark"
